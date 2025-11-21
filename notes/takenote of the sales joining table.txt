@@ -1,0 +1,45 @@
+✅ Step 1: Backend API (Node.js Example)
+Ensure your backend joins data from sales, products, and suppliers:
+
+js
+Copy
+Edit
+// In your salesController.js (Express)
+const db = require("../config/db");
+
+exports.getSalesWithDetails = (req, res) => {
+  const query = `
+    SELECT s.id AS sale_id, s.sale_date, s.quantity, s.total_amount,
+           p.name AS product_name, p.price,
+           sup.name AS supplier_name
+    FROM sales s
+    JOIN products p ON s.product_id = p.id
+    JOIN suppliers sup ON p.supplier_id = sup.id
+    ORDER BY s.sale_date DESC
+  `;
+  db.query(query, (err, results) => {
+    if (err) return res.status(500).json(err);
+    res.json(results);
+  });
+};
+
+
+
+📝 Backend API Expected Format
+Make sure your backend (GET /api/sales) returns data in this format:
+
+json
+Copy
+Edit
+[
+  {
+    "id": 1,
+    "productName": "Item A",
+    "supplierName": "Supplier X",
+    "customerName": "Juan Dela Cruz",
+    "cashierName": "Cashier 1",
+    "quantity": 2,
+    "totalPrice": 600,
+    "saleDate": "2025-07-19T10:30:00Z"
+  }
+]

@@ -1,0 +1,226 @@
+/* Navbar css start */
+.title-with-truck {
+  display: flex;
+  align-items: center;
+  gap: 5px; /* reduced */
+  font-family: "Segoe UI", sans-serif;
+  font-size: 14px; /* reduced from 24px */
+}
+
+/* Truck container */
+.truck-animation {
+  display: inline-block;
+  position: relative;
+  font-size: 28px; /* reduced from 60px */
+  transform: scaleX(-1);
+  animation: truck-bounce 0.6s infinite ease-in-out;
+}
+
+/* Dust base style */
+.dust {
+  position: absolute;
+  width: 6px; /* reduced */
+  height: 6px;
+  background: rgba(200, 200, 200, 0.5);
+  border-radius: 50%;
+  top: 80%;
+  right: -6px;
+  transform: translateY(-50%);
+  animation: dust-flicker 0.8s linear infinite;
+}
+
+.dust1 {
+  animation-delay: 0s;
+  width: 6px;
+  height: 6px;
+  right: -5px;
+}
+.dust2 {
+  animation-delay: 0.2s;
+  width: 8px;
+  height: 8px;
+  right: -7px;
+}
+.dust3 {
+  animation-delay: 0.4s;
+  width: 5px;
+  height: 5px;
+  right: -6px;
+}
+.dust4 {
+  animation-delay: 0.4s;
+  width: 4px;
+  height: 8px;
+  right: -7px;
+}
+.dust5 {
+  animation-delay: 0.4s;
+  width: 8px;
+  height: 6px;
+  right: -8px;
+}
+
+/* Truck vertical bounce */
+@keyframes truck-bounce {
+  0% {
+    transform: translateY(0) scaleX(-1);
+  }
+  20% {
+    transform: translateY(-2px) scaleX(-1);
+  }
+  40% {
+    transform: translateY(1px) scaleX(-1);
+  }
+  60% {
+    transform: translateY(-1px) scaleX(-1);
+  }
+  80% {
+    transform: translateY(2px) scaleX(-1);
+  }
+  100% {
+    transform: translateY(0) scaleX(-1);
+  }
+}
+
+/* Dust flicker animation stays same */
+@keyframes dust-flicker {
+  0% {
+    transform: translate(2px, -2px) scale(0.3);
+    opacity: 1;
+  }
+  50% {
+    transform: translate(12px, -3px) scale(0.7);
+    opacity: 0.6;
+  }
+  100% {
+    transform: translate(20px, -6px) scale(0.3);
+    opacity: 0;
+  }
+}
+/* Navbar css end */
+
+/* Container */
+.delivery-table-container {
+  background-color: #ffffff;
+  padding: 8px; /* reduced */
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+/* Table base */
+.delivery-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 12px; /* reduced */
+  color: #333;
+  transition: all 0.2s ease-in-out;
+}
+
+/* Table header */
+.delivery-table-head th {
+  background-color: #0f42eb;
+  color: #fff;
+  font-weight: 500;
+  padding: 6px; /* reduced */
+  text-align: center;
+  border-bottom: 1px solid #388e3c;
+  font-size: 12px; /* reduced */
+}
+
+/* Table rows */
+.delivery-table-row:hover {
+  background-color: #bcec62e3;
+  transform: translateY(-1px);
+  cursor: pointer;
+  font-weight: 500;
+}
+
+/* Table cells */
+.delivery-table-td {
+  padding: 5px;
+  text-align: center;
+  border-bottom: 1px solid #ddd;
+  font-size: 12px; /* reduced */
+}
+
+/* List items inside Items column */
+.delivery-table-items {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+
+.delivery-table-items li {
+  margin: 1px 0;
+  font-size: 11px;
+  color: #555;
+}
+
+/* Buttons */
+.delivery-table-btn {
+  font-weight: 500;
+  padding: 2px 6px;
+  border-radius: 3px;
+  border: none;
+  cursor: pointer;
+  font-size: 11px;
+  transition: all 0.2s ease-in-out;
+}
+
+.delivery-table-btn.btn-primary {
+  background-color: #2196f3;
+  color: #fff;
+}
+
+.delivery-table-btn.btn-primary:hover {
+  background-color: #1976d2;
+}
+
+.delivery-table-btn.btn-success {
+  background-color: #4caf50;
+  color: #fff;
+}
+
+.delivery-table-btn.btn-success:hover {
+  background-color: #388e3c;
+}
+
+/* Delivery Status Colors */
+.delivery-status {
+  font-weight: bold;
+  font-size: 12px;
+}
+
+.delivery-status.pending {
+  color: #ff9800;
+}
+
+.delivery-status.completed {
+  color: #4caf50;
+}
+
+.delivery-status.on-the-way {
+  color: #2196f3;
+}
+
+/* No deliveries row */
+.delivery-table-td.text-center {
+  font-style: italic;
+  color: #888;
+  font-size: 12px;
+}
+
+/* Order items shrink */
+.order-item {
+  font-size: 11px;
+  list-style: none;
+  margin: 1px 0;
+}
+
+/*modal of delivery start*/
+
+/*for delivery employee end*/
+/*modal of delivery end*/

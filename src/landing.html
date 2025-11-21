@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Jollibee Ordering Page</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <style>
+      /* Reset & basic styles */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: Arial, sans-serif;
+      }
+      body {
+        background: #fff;
+        color: #333;
+      }
+
+      /* Hero Section */
+      .hero {
+        background: url("/assets/img/products/hero-bg.jpg") center/cover
+          no-repeat;
+        height: 90vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        color: #fff;
+        position: relative;
+        overflow: hidden;
+      }
+      .hero h1 {
+        font-size: 3rem;
+        margin-bottom: 20px;
+        animation: fadeInDown 1s ease forwards;
+      }
+      .hero button {
+        padding: 15px 30px;
+        font-size: 1.2rem;
+        background: #ff0000;
+        border: none;
+        color: #fff;
+        cursor: pointer;
+        border-radius: 5px;
+        animation: fadeInUp 1s ease forwards;
+        animation-delay: 0.5s;
+        opacity: 0;
+      }
+      .hero button:hover {
+        background: #cc0000;
+      }
+
+      @keyframes fadeInDown {
+        0% {
+          opacity: 0;
+          transform: translateY(-50px);
+        }
+        100% {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      @keyframes fadeInUp {
+        0% {
+          opacity: 0;
+          transform: translateY(50px);
+        }
+        100% {
+          opacity: 1;
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+
+      /* Menu Section */
+      .menu {
+        padding: 50px 20px;
+        background: #fff5f5;
+      }
+      .menu h2 {
+        text-align: center;
+        margin-bottom: 40px;
+        color: #ff0000;
+      }
+      .menu-items {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+      }
+      .item-card {
+        background: #fff;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        transform: translateY(50px);
+        opacity: 0;
+        transition: all 0.5s ease;
+      }
+      .item-card img {
+        width: 100%;
+        border-radius: 10px;
+        margin-bottom: 15px;
+      }
+      .item-card button {
+        margin-top: 10px;
+        padding: 10px 20px;
+        background: #ff0000;
+        color: #fff;
+        border: none;
+        cursor: pointer;
+        border-radius: 5px;
+      }
+      .item-card button:hover {
+        background: #cc0000;
+      }
+      .item-card.show {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Hero Section -->
+    <section class="hero">
+      <h1>Order Your Favorites Now!</h1>
+      <button>Start Ordering</button>
+    </section>
+
+    <!-- Menu Section -->
+    <section class="menu">
+      <h2>Our Menu</h2>
+      <div class="menu-items">
+        <div class="item-card">
+          <img src="/public/assets/img/products/k1.jpg" alt="Yum Burger" />
+          <h3>Yum Burger</h3>
+          <p>₱120.00</p>
+          <button>Add to Cart</button>
+        </div>
+        <div class="item-card">
+          <img src="/public/assets/img/products/k2.jpg" alt="French Fries" />
+          <h3>French Fries</h3>
+          <p>₱60.00</p>
+          <button>Add to Cart</button>
+        </div>
+        <div class="item-card">
+          <img src="/public/assets/img/products/k3.jpg" alt="Chickenjoy" />
+          <h3>Chickenjoy</h3>
+          <p>₱150.00</p>
+          <button>Add to Cart</button>
+        </div>
+      </div>
+    </section>
+
+    <script>
+      // Animate menu items on scroll
+      const items = document.querySelectorAll(".item-card");
+      window.addEventListener("scroll", () => {
+        const triggerBottom = (window.innerHeight / 5) * 4;
+        items.forEach((item) => {
+          const itemTop = item.getBoundingClientRect().top;
+          if (itemTop < triggerBottom) {
+            item.classList.add("show");
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

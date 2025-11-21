@@ -1,0 +1,38 @@
+{
+  "appId": "com.store.inventory",
+  "productName": "Inventory System",
+  "directories": {
+    "output": "dist/main"
+  },
+  "files": [
+    "build/**/*",
+    "mike.js",
+    "package.json"
+  ],
+  "extraResources": [
+    {
+      "from": "src/admin/backend/",
+      "to": "backend",
+      "filter": [
+        "server.js",
+        "package.json",
+        "node_modules/**/*"
+      ]
+    },
+    {
+      "from": "src/admin/components/Dashboard/",
+      "to": "components/Dashboard",
+      "filter": [
+        "Routes.js"
+      ]
+    }
+  ],
+  "win": {
+    "target": "nsis",
+    "signAndEditExecutable": false,
+    "icon": "build/inventory.ico"
+  },
+  "extraMetadata": {
+    "main": "mike.js"
+  }
+}

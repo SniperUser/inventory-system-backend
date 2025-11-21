@@ -1,0 +1,108 @@
+.digital-clock-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #001f3f, #001a33); /* dark gradient */
+  border-radius: 15px;
+  padding: 5px 10px;
+  box-shadow: 0 0 20px rgba(0, 234, 255, 0.6),
+    inset 0 0 10px rgba(0, 234, 255, 0.3);
+  color: #00eaff;
+  font-family: "Orbitron", sans-serif;
+}
+
+/* rest of your styles stay the same */
+
+.clock-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+}
+
+.circle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  border: 2px solid #00eaff;
+  position: relative;
+  box-shadow: 0 0 8px #00eaff, inset 0 0 8px #00eaff;
+  background: rgba(0, 20, 40, 0.7); /* subtle background for each circle */
+}
+
+.circle::before {
+  content: "";
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 1px dashed #00eaff;
+  top: 0;
+  left: 0;
+  animation: rotate 20s linear infinite;
+  opacity: 0.5;
+}
+
+.time {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #00eaff;
+  text-shadow: 0 0 4px #00eaff, 0 0 6px #00eaff;
+}
+
+.labels {
+  font-size: 0.55rem;
+  margin-top: 3px;
+  letter-spacing: 1px;
+  color: #00eaff;
+}
+
+.extra-info {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  margin-top: 6px;
+  gap: 10px;
+  background: rgba(0, 30, 50, 0.8);
+  padding: 4px 10px;
+  border-radius: 8px;
+  box-shadow: inset 0 0 6px rgba(0, 234, 255, 0.3);
+}
+
+.ampm {
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: #00eaff;
+}
+
+.day,
+.date {
+  font-size: 0.8rem;
+  letter-spacing: 1px;
+  color: #00eaff;
+}
+
+.time,
+.ampm,
+.day,
+.date,
+.labels {
+  text-shadow: -1px -1px 0 #1f1e1e, 1px -1px 0 #1f1e1e, -1px 1px 0 #1f1e1e,
+    1px 1px 0 #1f1e1e, 0 0 6px #00eaff, /* glow effect */ 0 0 10px #00eaff; /* stronger glow */
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

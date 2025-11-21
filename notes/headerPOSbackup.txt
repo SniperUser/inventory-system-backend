@@ -1,0 +1,532 @@
+// src/layouts/EcommerceLayout.js
+import React, { useState, useRef, useEffect } from "react";
+import { useCart } from "../pages/cart.js";
+import ProductModal from "../components/ProductModal.js";
+import { Link } from "react-router-dom";
+
+const EcommerceLayout = ({ onViewProduct }) => {
+  const { cart, removeFromCart, totalItems, totalPrice } = useCart();
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [purchaseQty, setPurchaseQty] = useState(1);
+  const [showUserModal, setShowUserModal] = useState(false);
+  const [showAccountModal, setShowAccountModal] = useState(false);
+  const [showImagePreview, setShowImagePreview] = useState(false);
+  const userIconRef = useRef(null);
+  const [user, setUser] = useState(null);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+
+  const storedUser = localStorage.getItem("user");
+  const loggedInUserId = storedUser ? JSON.parse(storedUser).employee_id : null;
+
+  const [imageFile, setImageFile] = useState(null);
+
+  // ---------- FETCH USER ----------
+  useEffect(() => {
+    if (!loggedInUserId) return;
+
+    const fetchUserData = async () => {
+      try {
+        const res = await fetch(
+          `http://localhost:5000/api/users/getaccount/${loggedInUserId}`
+        );
+        if (!res.ok) throw new Error("Failed to fetch user data");
+        const data = await res.json();
+        setUser(data);
+      } catch (err) {
+        console.error("Error fetching user:", err);
+      }
+    };
+
+    fetchUserData();
+  }, [loggedInUserId]);
+
+  // ---------- FORM STATE ----------
+  const [formData, setFormData] = useState({
+    username: "",
+    name: "",
+    address: "",
+    contact: "",
+    email: "",
+    birthday: "",
+  });
+
+  const [previewImage, setPreviewImage] = useState(null);
+  const [showPasswordFields, setShowPasswordFields] = useState(false);
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [passwordMessage, setPasswordMessage] = useState("");
+
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        username: user.username || "",
+        name: user.name || "",
+        address: user.address || "",
+        contact: user.contact || "",
+        email: user.email || "",
+        birthday: user.birthday ? user.birthday.split("T")[0] : "",
+      });
+      setPreviewImage(user.image || null);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (showToast) {
+      const timer = setTimeout(() => setShowToast(false), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [showToast]);
+
+  // ---------- HANDLERS ----------
+  const handleViewProduct = (product) => {
+    setSelectedProduct(product);
+    setPurchaseQty(1);
+    if (onViewProduct) onViewProduct(product);
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImageFile(file);
+      setPreviewImage(URL.createObjectURL(file));
+    }
+  };
+
+  const handleSave = async () => {
+    try {
+      const formPayload = new FormData();
+      formPayload.append("employee_id", loggedInUserId);
+      formPayload.append("username", formData.username);
+      formPayload.append("name", formData.name);
+      formPayload.append("address", formData.address);
+      formPayload.append("contact", formData.contact);
+      formPayload.append("email", formData.email);
+      formPayload.append("birthday", formData.birthday);
+      formPayload.append("oldPassword", oldPassword);
+      formPayload.append("newPassword", newPassword);
+
+      if (imageFile) {
+        formPayload.append("image", imageFile);
+      }
+
+      const res = await fetch("http://localhost:5000/api/users/updateProfile", {
+        method: "PUT",
+        body: formPayload,
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setToastMessage(data.message || "Failed to update profile");
+        setShowToast(true);
+        return;
+      }
+
+      setToastMessage("Profile updated successfully!");
+      setShowToast(true);
+      setShowAccountModal(false);
+
+      setUser({ ...user, ...formData, image: data.updatedImage || user.image });
+      setOldPassword("");
+      setNewPassword("");
+    } catch (err) {
+      console.error("Error updating profile:", err);
+      setToastMessage("Failed to update profile");
+      setShowToast(true);
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    window.location.reload();
+  };
+
+  const getUserImage = (img) => (img ? encodeURI(img) : "/default.png");
+
+  // ---------- JSX ----------
+  return (
+    <div className="ecommerce">
+      {/* TOP BAR */}
+      <div className="pre-header">
+        <div className="container">
+          <div className="row">
+            <div className="col-md-6 col-sm-6 additional-shop-info">
+              <ul className="list-unstyled list-inline">
+                <li>
+                  <i className="fa fa-phone"></i>
+                  <span>+63 912 345 6789</span>
+                </li>
+              </ul>
+            </div>
+
+            {/* USER MENU */}
+            <div className="col-md-6 col-sm-6 additional-nav">
+              <ul className="list-unstyled list-inline pull-right">
+                <li style={{ position: "relative" }}>
+                  <a
+                    href="#"
+                    ref={userIconRef}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setShowUserModal(true);
+                      setShowAccountModal(false);
+                    }}
+                  >
+                    <i className="fa fa-user"></i>
+                  </a>
+
+                  {showUserModal && (
+                    <div className="custom-user-panel shadow-lg rounded">
+                      <button
+                        type="button"
+                        className="custom-close-btn"
+                        onClick={() => setShowUserModal(false)}
+                      >
+                        &times;
+                      </button>
+
+                      <div className="custom-avatar-section">
+                        <img
+                          src={getUserImage(user?.image)}
+                          alt={user?.name || "Default User"}
+                          className="custom-avatar-img"
+                          onError={(e) => (e.target.src = "/default.png")}
+                        />
+                        <p className="custom-user-name">
+                          {user?.name || "Guest User"}
+                        </p>
+                      </div>
+
+                      <div className="custom-action-buttons">
+                        <button
+                          className="custom-action-btn"
+                          onClick={() => {
+                            setShowUserModal(false);
+                            setShowAccountModal(true);
+                          }}
+                        >
+                          Account
+                        </button>
+                        <button className="custom-action-btn">Message</button>
+                        <button className="custom-action-btn">Settings</button>
+                      </div>
+
+                      <button
+                        className="custom-logout-btn"
+                        onClick={() => setShowUserModal(false)}
+                      >
+                        Logout
+                      </button>
+                    </div>
+                  )}
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* HEADER */}
+      <div className="header">
+        <div className="container">
+          <a className="site-logo" href="#">
+            <img
+              src="assets/corporate/img/logos/logo-shop-red.png"
+              alt="Sari-Sari Store"
+            />
+          </a>
+
+          {/* CART */}
+          <div className="top-cart-block">
+            <div className="top-cart-info">
+              <a href="#" className="top-cart-info-count">
+                {totalItems} items
+              </a>
+              <a href="#" className="top-cart-info-value">
+                ₱{totalPrice.toFixed(2)}
+              </a>
+            </div>
+            <i className="fa fa-shopping-cart"></i>
+            <div className="top-cart-content-wrapper">
+              <div className="top-cart-content">
+                {cart.length > 0 ? (
+                  <>
+                    <ul className="scroller" style={{ height: "250px" }}>
+                      {cart.map((item) => (
+                        <li key={item.id}>
+                          <a
+                            href="#"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              handleViewProduct(item);
+                            }}
+                          >
+                            <img
+                              src={item.image}
+                              alt={item.product_name}
+                              width="40"
+                              height="34"
+                            />
+                          </a>
+                          <span className="cart-content-count">
+                            x {item.qty}
+                          </span>
+                          <strong>
+                            <a
+                              href="#"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                handleViewProduct(item);
+                              }}
+                            >
+                              {item.product_name}
+                            </a>
+                          </strong>
+                          <em>₱{(item.price * item.qty).toFixed(2)}</em>
+                          <button
+                            onClick={() => removeFromCart(item.id)}
+                            className="del-goods"
+                            style={{ border: "none", background: "none" }}
+                          >
+                            &nbsp;
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                    <div className="text-right">
+                      <Link to="/pos/cart" className="btn btn-default">
+                        View Cart
+                      </Link>
+                      <a href="#" className="btn btn-primary">
+                        Checkout
+                      </a>
+                    </div>
+                  </>
+                ) : (
+                  <p className="p-3 text-center">Your cart is empty.</p>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* PRODUCT MODAL */}
+      {selectedProduct && (
+        <ProductModal
+          product={selectedProduct}
+          purchaseQty={purchaseQty}
+          setPurchaseQty={setPurchaseQty}
+          onClose={() => setSelectedProduct(null)}
+        />
+      )}
+
+      {/* ACCOUNT MODAL */}
+      {showAccountModal && user && (
+        <div
+          className="modal fade show d-block"
+          tabIndex="-1"
+          style={{ backgroundColor: "rgba(0,0,0,0.7)" }}
+          onClick={() => setShowAccountModal(false)}
+        >
+          <div
+            className="modal-dialog modal-lg modal-dialog-centered"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="modal-content border shadow-lg">
+              <div className="modal-header">
+                <h5 className="modal-title w-100 text-center">
+                  <i className="fa fa-user-circle me-2"></i> Edit Profile
+                </h5>
+                <button
+                  type="button"
+                  className="btn-close"
+                  onClick={() => setShowAccountModal(false)}
+                ></button>
+              </div>
+
+              <div className="modal-body px-4">
+                {/* Profile Image */}
+                <div className="text-center mb-4">
+                  <div
+                    style={{
+                      width: "120px",
+                      height: "120px",
+                      borderRadius: "50%",
+                      overflow: "hidden",
+                      margin: "0 auto",
+                      border: "3px solid #fff",
+                      cursor: "pointer",
+                      position: "relative",
+                    }}
+                    onClick={() => setShowImagePreview(true)}
+                  >
+                    <img
+                      src={previewImage || getUserImage(user.image)}
+                      alt="Profile"
+                      className="w-100 h-100"
+                      style={{ objectFit: "cover" }}
+                    />
+                  </div>
+
+                  {/* Upload Button Moved Outside */}
+                  <div className="mt-3">
+                    <label
+                      htmlFor="fileUpload"
+                      className="btn btn-sm btn-outline-primary"
+                      style={{ cursor: "pointer" }}
+                    >
+                      <i className="bi bi-pencil-fill me-1"></i> Change Photo
+                    </label>
+                    <input
+                      id="fileUpload"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      style={{ display: "none" }}
+                    />
+                  </div>
+                </div>
+
+                {/* Form Fields */}
+                <div className="row g-3">
+                  {[
+                    { label: "Username", name: "username" },
+                    { label: "Name", name: "name" },
+                    { label: "Address", name: "address" },
+                    { label: "Contact", name: "contact" },
+                    { label: "Email", name: "email", type: "email" },
+                    { label: "Birthday", name: "birthday", type: "date" },
+                  ].map(({ label, name, type = "text" }) => (
+                    <div key={name} className="col-md-6">
+                      <label className="form-label">{label}</label>
+                      <input
+                        name={name}
+                        type={type}
+                        value={formData[name] || ""}
+                        onChange={handleChange}
+                        className="form-control"
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                {/* Change Password */}
+                <div className="mt-4">
+                  <button
+                    type="button"
+                    className="btn btn-outline-dark btn-sm"
+                    onClick={() => setShowPasswordFields((prev) => !prev)}
+                  >
+                    {showPasswordFields ? "Cancel" : "Change Password"}
+                  </button>
+                </div>
+
+                {showPasswordFields && (
+                  <div className="p-3 rounded mt-3 bg-light border">
+                    <div className="mb-2">
+                      <label className="form-label">Old Password</label>
+                      <input
+                        type="password"
+                        className="form-control"
+                        value={oldPassword}
+                        onChange={(e) => setOldPassword(e.target.value)}
+                      />
+                    </div>
+                    <div className="mb-2">
+                      <label className="form-label">New Password</label>
+                      <input
+                        type="password"
+                        className="form-control"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                      />
+                    </div>
+                    {passwordMessage && (
+                      <div className="text-warning mt-1">{passwordMessage}</div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <div className="modal-footer justify-content-between">
+                <button
+                  type="button"
+                  className="btn btn-sm btn-outline-dark"
+                  onClick={() => setShowAccountModal(false)}
+                >
+                  Close
+                </button>
+                <div className="d-flex gap-2">
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-success"
+                    onClick={handleSave}
+                  >
+                    Save Changes
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-danger"
+                    onClick={handleLogout}
+                  >
+                    Logout
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* IMAGE PREVIEW */}
+      {showImagePreview && (
+        <div
+          className="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center bg-dark bg-opacity-75"
+          style={{ zIndex: 2000 }}
+          onClick={() => setShowImagePreview(false)}
+        >
+          <img
+            src={previewImage || getUserImage(user?.image)}
+            alt="Preview"
+            className="img-fluid rounded shadow"
+            style={{ maxHeight: "90%", maxWidth: "90%", objectFit: "contain" }}
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
+
+      {/* Toast Notification */}
+      <div
+        className={`position-fixed top-0 end-0 p-3`}
+        style={{ zIndex: 3000 }}
+      >
+        <div
+          className={`toast align-items-center text-bg-success border-0 ${
+            showToast ? "show" : ""
+          }`}
+          role="alert"
+          aria-live="assertive"
+          aria-atomic="true"
+        >
+          <div className="d-flex">
+            <div className="toast-body">{toastMessage}</div>
+            <button
+              type="button"
+              className="btn-close btn-close-white me-2 m-auto"
+              onClick={() => setShowToast(false)}
+            ></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default EcommerceLayout;

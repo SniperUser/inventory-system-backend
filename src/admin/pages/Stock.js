@@ -1,0 +1,1222 @@
+import React, {
+  useState,
+  useEffect,
+  useContext,
+  useRef,
+  useCallback,
+} from "react";
+import "bootstrap/dist/css/bootstrap.min.css";
+import * as bootstrap from "bootstrap";
+import {
+  faPlus,
+  faPen,
+  faTrash,
+  faSearch,
+  faSun,
+  faMoon,
+  faFilePdf,
+} from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import axios from "axios";
+import { ThemeContext } from "../context/themeContext.js";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+
+const deepEqual = (a, b) => {
+  try {
+    return JSON.stringify(a) === JSON.stringify(b);
+  } catch {
+    return false;
+  }
+};
+
+const Stock = () => {
+  const [stockData, setStockData] = useState([]);
+  const [suppliers, setSuppliers] = useState([]);
+  const [employees, setEmployees] = useState([]);
+  const [isEditing, setIsEditing] = useState(false);
+  const { theme, setTheme } = useContext(ThemeContext);
+  const [addingSupplier, setAddingSupplier] = useState(false);
+
+  const [formData, setFormData] = useState({
+    product_name: "",
+    description: "",
+    price: "",
+    quantity: "",
+    category: "Raw Material",
+    brand: "",
+    supplier_id: "",
+    received_by: "",
+    received_date: "",
+    product_condition: "New",
+    image: null,
+  });
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortOrder, setSortOrder] = useState("default");
+  const [filterCategory, setFilterCategory] = useState("All");
+  const [filterCondition, setFilterCondition] = useState("All");
+  const [showNewSupplier, setShowNewSupplier] = useState(false);
+  const [newSupplier, setNewSupplier] = useState({
+    product: "",
+    name: "",
+    contact: "",
+    phone: "",
+    address: "",
+  });
+  const [deleteId, setDeleteId] = useState(null);
+
+  const lastDropdownsRef = useRef({ suppliers: [], employees: [] });
+  const lastStockRef = useRef([]);
+
+  // Poll everything every 5 seconds, but only update state if changed
+  const pollAll = useCallback(async () => {
+    try {
+      const [supRes, empRes] = await Promise.all([
+        axios.get("http://localhost:5000/api/stocked/suppliers"),
+        axios.get("http://localhost:5000/api/stocked/employees"),
+      ]);
+
+      const newSuppliers =
+        supRes.data?.data?.suppliers ||
+        supRes.data?.suppliers ||
+        supRes.data ||
+        [];
+      const newEmployees =
+        empRes.data?.data?.employees ||
+        empRes.data?.employees ||
+        empRes.data ||
+        [];
+
+      if (!deepEqual(lastDropdownsRef.current.suppliers, newSuppliers)) {
+        setSuppliers(newSuppliers);
+        lastDropdownsRef.current.suppliers = newSuppliers;
+      }
+
+      if (!deepEqual(lastDropdownsRef.current.employees, newEmployees)) {
+        setEmployees(newEmployees);
+        lastDropdownsRef.current.employees = newEmployees;
+      }
+
+      if (newSuppliers.length && newEmployees.length) {
+        const { data } = await axios.get(
+          "http://localhost:5000/api/stocked/get"
+        );
+        const enriched = data.map((item) => ({
+          ...item,
+          supplier_name:
+            newSuppliers.find((s) => s.id === item.supplier_id)?.name || "N/A",
+          received_by_name:
+            newEmployees.find((e) => e.id === item.received_by)?.name || "N/A",
+        }));
+
+        if (!deepEqual(lastStockRef.current, enriched)) {
+          setStockData(enriched);
+          lastStockRef.current = enriched;
+        }
+      }
+    } catch (err) {
+      console.error("Polling error:", err);
+    }
+  }, []);
+
+  useEffect(() => {
+    pollAll(); // initial
+    const interval = setInterval(() => {
+      pollAll();
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [pollAll]);
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+  }, [theme]);
+
+  const openModal = () => {
+    const defaultChecker = employees.find(
+      (e) => e.position?.toLowerCase() === "checker" && e.is_archived === 0
+    );
+
+    setFormData({
+      product_name: "",
+      description: "",
+      price: "",
+      quantity: "",
+      category: "Can Goods",
+      brand: "",
+      supplier_id: suppliers[0]?.id || "",
+      received_by: defaultChecker?.id || "",
+      received_date: new Date().toISOString().split("T")[0],
+      product_condition: "New",
+    });
+
+    setIsEditing(false);
+    new bootstrap.Modal(document.getElementById("stockModal")).show();
+  };
+
+  const handleEdit = (item) => {
+    setFormData({ ...item, brand: item.brand || "" }); // <-- Ensure brand is set
+    setIsEditing(true);
+    new bootstrap.Modal(document.getElementById("stockModal")).show();
+  };
+
+  const handleExportPDF = async () => {
+    const doc = new jsPDF();
+
+    const getBase64ImageFromURL = (url) => {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = "Anonymous";
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          canvas.width = 40;
+          canvas.height = 40;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          const dataURL = canvas.toDataURL("image/png");
+          resolve(dataURL);
+        };
+        img.onerror = (err) => {
+          console.error("Image load error", err);
+          resolve(""); // fallback blank
+        };
+        img.src = url;
+      });
+    };
+
+    const imageData = await Promise.all(
+      filteredStock.map((item) =>
+        getBase64ImageFromURL(`http://localhost:5000/uploads/${item.image}`)
+      )
+    );
+
+    const body = filteredStock.map((item, index) => [
+      {
+        content: String(item.id), // ID wrapped as object
+      },
+      {
+        content: "",
+        image: imageData[index],
+      },
+      item.product_name,
+      item.description,
+      `PHP ${Number(item.price).toFixed(2)}`,
+      item.quantity,
+      item.category,
+      item.supplier_name,
+      item.received_by_name,
+      new Date(item.received_date).toLocaleString(),
+      item.product_condition,
+    ]);
+
+    autoTable(doc, {
+      head: [
+        [
+          "ID",
+          "Image",
+          "Product Name",
+          "Description",
+          "Price",
+          "Qty",
+          "Category",
+          "Supplier",
+          "Received By",
+          "Received Date",
+          "Condition",
+        ],
+      ],
+      body,
+      didDrawCell: (data) => {
+        if (data.cell.raw?.image) {
+          doc.addImage(
+            data.cell.raw.image,
+            "PNG",
+            data.cell.x + 2,
+            data.cell.y + 2,
+            16,
+            16
+          );
+        }
+      },
+      columnStyles: {
+        0: { cellWidth: 10 }, // ID column
+        1: { cellWidth: 20 }, // Image column
+      },
+    });
+
+    doc.save("stock_inventory.pdf");
+  };
+
+  const handleDelete = async (id) => {
+    const confirmDelete = window.confirm(
+      "Are you sure you want to archive this stock item?"
+    );
+    if (!confirmDelete) return;
+    try {
+      await axios.post(
+        `http://localhost:5000/api/stocked/archived/stock/${id}`
+      );
+      alert("📦 Stock archived!");
+      pollAll(); // refresh manually
+    } catch (err) {
+      console.error(err);
+      alert("❌ Error archiving stock");
+    }
+  };
+
+  const handleSave = async () => {
+    try {
+      const formPayload = new FormData();
+
+      // Append form values
+      for (const key in formData) {
+        if (formData[key] !== null) {
+          formPayload.append(key, formData[key]);
+        }
+      }
+
+      if (isEditing) {
+        await axios.put(
+          `http://localhost:5000/api/stocked/update/stock/${formData.id}`,
+          formPayload,
+          {
+            headers: { "Content-Type": "multipart/form-data" },
+          }
+        );
+        showSuccessModal("✅ Stock updated!");
+      } else {
+        await axios.post(
+          "http://localhost:5000/api/stocked/stock",
+          formPayload,
+          {
+            headers: { "Content-Type": "multipart/form-data" },
+          }
+        );
+        showSuccessModal("✅ Product added successfully!");
+      }
+
+      pollAll();
+      document.getElementById("stockModalClose")?.click();
+    } catch (err) {
+      console.error(err);
+      alert("❌ Error saving stock");
+    }
+  };
+
+  const filteredStock = stockData
+    .filter((item) => {
+      const matchSearch =
+        item.product_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.supplier_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.received_by_name
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase()) ||
+        (item.brand || "").toLowerCase().includes(searchQuery.toLowerCase());
+
+      const matchCategory =
+        filterCategory === "All" || item.category === filterCategory;
+
+      const matchCondition =
+        filterCondition === "All" || item.product_condition === filterCondition;
+
+      return matchSearch && matchCategory && matchCondition;
+    })
+    .sort((a, b) => {
+      if (sortOrder === "asc") return parseFloat(a.price) - parseFloat(b.price);
+      if (sortOrder === "desc")
+        return parseFloat(b.price) - parseFloat(a.price);
+      return 0;
+    });
+
+  const showSuccessModal = (message) => {
+    document.getElementById("successMessage").textContent = message;
+    const modalElement = document.getElementById("successModal");
+    const successModal = new bootstrap.Modal(modalElement);
+    successModal.show();
+    setTimeout(() => {
+      successModal.hide();
+    }, 2000);
+  };
+
+  const showDeleteModal = (id) => {
+    setDeleteId(id);
+    new bootstrap.Modal(document.getElementById("deleteConfirmModal")).show();
+  };
+
+  const confirmDelete = async () => {
+    try {
+      await axios.put(
+        `http://localhost:5000/api/stocked/archived/stock/${deleteId}`
+      );
+      showSuccessModal("🗑️ Stock deleted!");
+      pollAll();
+      setDeleteId(null);
+      bootstrap.Modal.getInstance(
+        document.getElementById("deleteConfirmModal")
+      ).hide();
+    } catch (err) {
+      console.error(err);
+      alert("❌ Error deleting stock.");
+    }
+  };
+
+  // Includes active + inactive checkers, excludes archived
+  const checkerEmployees = employees.filter(
+    (e) => e.position?.toLowerCase() === "checker" && e.is_archived === 0
+  );
+
+  const toggleTheme = () => {
+    setTheme(theme === "dark" ? "light" : "dark");
+  };
+
+  return (
+    <div
+      className="container-fluid p-3"
+      style={{
+        fontSize: "0.8rem",
+        backgroundColor: "var(--bg-color)",
+        color: "var(--text-color)",
+        minHeight: "100vh",
+        position: "relative",
+      }}
+    >
+      <h2 className="mb-3">Stock Inventory</h2>
+
+      {/* Top Controls */}
+      <div className="row g-2 mb-2 align-items-center">
+        <div className="col-md-3 position-relative">
+          <input
+            type="text"
+            className="form-control ps-5"
+            placeholder="Search stock..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={{
+              backgroundColor: "var(--bg-color)",
+              color: "var(--text-color)",
+              border: "1px solid var(--border-color)",
+            }}
+          />
+          <FontAwesomeIcon
+            icon={faSearch}
+            className="position-absolute top-50 start-0 translate-middle-y ms-3"
+            style={{ color: "var(--searchicon-color)", zIndex: 1 }}
+          />
+        </div>
+
+        <div className="col-md-2">
+          <select
+            className="form-select"
+            value={sortOrder}
+            onChange={(e) => setSortOrder(e.target.value)}
+            style={{
+              backgroundColor: "var(--bg-color)",
+              color: "var(--text-color)",
+              border: "1px solid var(--border-color)",
+            }}
+          >
+            <option value="default">Sort by Price</option>
+            <option value="asc">Price: Low to High</option>
+            <option value="desc">Price: High to Low</option>
+          </select>
+        </div>
+
+        <div className="col-md-2">
+          <select
+            className="form-select"
+            value={filterCategory}
+            onChange={(e) => setFilterCategory(e.target.value)}
+            style={{
+              backgroundColor: "var(--bg-color)",
+              color: "var(--text-color)",
+              border: "1px solid var(--border-color)",
+            }}
+          >
+            <option value="All">All Categories</option>
+            <option value="Can goods">Can goods</option>
+            <option value="Snacks">Snacks</option>
+            <option value="Drinks">Drinks</option>
+            <option value="Instant Noodles">Instant Noodles</option>
+            <option value="Condiments">Condiments</option>
+            <option value="Rice">Rice</option>
+            <option value="Frozen goods">Frozen goods</option>
+            <option value="Personal care">Personal care</option>
+            <option value="Laundry">Laundry</option>
+            <option value="Household Item">Household Item</option>
+          </select>
+        </div>
+
+        <div className="col-md-2 me-5">
+          <select
+            className="form-select"
+            value={filterCondition}
+            onChange={(e) => setFilterCondition(e.target.value)}
+            style={{
+              backgroundColor: "var(--bg-color)",
+              color: "var(--text-color)",
+              border: "1px solid var(--border-color)",
+            }}
+          >
+            <option value="All">All Conditions</option>
+            <option value="New">New</option>
+            <option value="Stored">Stored</option>
+          </select>
+        </div>
+
+        <div className="col-md-2 d-flex justify-content-end gap-2">
+          <button
+            className="btn btn-outline-secondary"
+            onClick={toggleTheme}
+            aria-label="Toggle theme"
+            style={{
+              borderColor: "var(--border-color)",
+              backgroundColor: "transparent",
+              color: "var(--text-color)",
+            }}
+          >
+            {theme === "dark" ? (
+              <FontAwesomeIcon icon={faSun} />
+            ) : (
+              <FontAwesomeIcon icon={faMoon} />
+            )}
+          </button>
+          <button
+            className="btn btn-outline-light"
+            onClick={handleExportPDF}
+            style={{
+              borderColor: "var(--border-color)",
+              color: "var(--text-color)",
+              backgroundColor: "transparent",
+              whiteSpace: "nowrap",
+            }}
+          >
+            <FontAwesomeIcon icon={faFilePdf} className="me-2" /> Export PDF
+          </button>
+        </div>
+      </div>
+
+      {/* Table */}
+      <div className="table-responsive">
+        <table
+          className="table table-bordered table-hover"
+          style={{
+            backgroundColor: "var(--bg-color)",
+            color: "var(--text-color)",
+          }}
+        >
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Image</th> {/* NEW COLUMN */}
+              <th>Product Name</th>
+              <th>Description</th>
+              <th>Price</th>
+              <th>Quantity</th>
+              <th>Category</th>
+              <th>Brand</th>
+              <th>Supplier</th>
+              <th>Received By</th>
+              <th>Received Date</th>
+              <th>Condition</th>
+              <th>Added On</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {filteredStock.length ? (
+              filteredStock.map((item, index) => (
+                <tr key={item.id}>
+                  <td>{index + 1}</td>
+                  <td>
+                    <img
+                      src={`http://localhost:5000/uploads/${
+                        item.image
+                      }?t=${Date.now()}`}
+                      alt={item.product_name}
+                      style={{
+                        width: "50px",
+                        height: "50px",
+                        objectFit: "cover",
+                        borderRadius: "5px",
+                      }}
+                    />
+                  </td>
+                  <td>{item.product_name}</td>
+                  <td>{item.description}</td>
+                  <td>
+                    ₱
+                    {Number(item.price).toLocaleString("en-PH", {
+                      minimumFractionDigits: 2,
+                    })}
+                  </td>
+                  <td>{item.quantity}</td>
+                  <td>{item.category}</td>
+                  <td>{item.brand || "-"}</td> {/* <-- Add this line */}
+                  <td>{item.supplier_name}</td>
+                  <td>{item.received_by_name}</td>
+                  <td>{new Date(item.received_date).toLocaleString()}</td>
+                  <td>{item.product_condition}</td>
+                  <td>{new Date(item.created_at).toLocaleString()}</td>
+                  <td>
+                    <button
+                      className="btn btn-sm btn-warning me-2"
+                      onClick={() => handleEdit(item)}
+                      title="Edit"
+                    >
+                      <FontAwesomeIcon icon={faPen} />
+                    </button>
+                    <button
+                      className="btn btn-sm btn-danger"
+                      onClick={() => showDeleteModal(item.id)}
+                      title="Delete"
+                    >
+                      <FontAwesomeIcon icon={faTrash} />
+                    </button>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="14" className="text-center">
+                  No stock available.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Add Button */}
+      <button
+        className="btn btn-success rounded-circle position-fixed d-flex justify-content-center align-items-center"
+        style={{
+          bottom: "20px",
+          right: "20px",
+          width: "60px",
+          height: "60px",
+          zIndex: 1050,
+        }}
+        onClick={openModal}
+        title="Add New Stock"
+      >
+        <FontAwesomeIcon icon={faPlus} />
+      </button>
+
+      {/* Stock Modal */}
+      <div
+        className="modal fade"
+        id="stockModal"
+        tabIndex="-1"
+        aria-hidden="true"
+      >
+        <div className="modal-dialog modal-lg modal-dialog-centered">
+          <div
+            className="modal-content"
+            style={{
+              backgroundColor: "var(--bg-color)",
+              color: "var(--text-color)",
+              padding: "0",
+            }}
+          >
+            <div className="modal-header">
+              <h5 className="modal-title">
+                {isEditing ? "Edit Stock" : "Add Stock"}
+              </h5>
+              <button
+                type="button"
+                className="btn-close"
+                data-bs-dismiss="modal"
+                id="stockModalClose"
+                aria-label="Close"
+                style={{ filter: "invert(1)" }}
+              ></button>
+            </div>
+            <div className="modal-body">
+              <div className="row g-3">
+                {/* Product Name */}
+                <div className="col-md-6">
+                  <input
+                    name="product_name"
+                    className="form-control"
+                    placeholder="Product Name"
+                    value={formData.product_name}
+                    onChange={(e) =>
+                      setFormData({ ...formData, product_name: e.target.value })
+                    }
+                    style={{
+                      backgroundColor: "var(--bg-color)",
+                      color: "var(--text-color)",
+                      border: "1px solid var(--border-color)",
+                    }}
+                  />
+                </div>
+
+                {/* Description */}
+                <div className="col-md-6">
+                  <textarea
+                    name="description"
+                    className="form-control"
+                    placeholder="Description"
+                    value={formData.description}
+                    onChange={(e) =>
+                      setFormData({ ...formData, description: e.target.value })
+                    }
+                    style={{
+                      backgroundColor: "var(--bg-color)",
+                      color: "var(--text-color)",
+                      border: "1px solid var(--border-color)",
+                    }}
+                  />
+                </div>
+
+                {/* Price */}
+                <div className="col-md-3">
+                  <div className="input-group">
+                    <span
+                      className="input-group-text"
+                      style={{
+                        backgroundColor: "var(--bg-color)",
+                        color: "var(--text-color)",
+                        border: "1px solid var(--border-color)",
+                      }}
+                    >
+                      ₱
+                    </span>
+                    <input
+                      name="price"
+                      type="number"
+                      step="0.01"
+                      className="form-control"
+                      placeholder="Price"
+                      value={formData.price}
+                      onChange={(e) =>
+                        setFormData({ ...formData, price: e.target.value })
+                      }
+                      style={{
+                        backgroundColor: "var(--bg-color)",
+                        color: "var(--text-color)",
+                        border: "1px solid var(--border-color)",
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Quantity */}
+                <div className="col-md-3">
+                  <input
+                    name="quantity"
+                    type="number"
+                    className="form-control"
+                    placeholder="Quantity"
+                    value={formData.quantity}
+                    onChange={(e) =>
+                      setFormData({ ...formData, quantity: e.target.value })
+                    }
+                    style={{
+                      backgroundColor: "var(--bg-color)",
+                      color: "var(--text-color)",
+                      border: "1px solid var(--border-color)",
+                    }}
+                  />
+                </div>
+
+                {/* Category */}
+                <div className="col-md-3 mb-3">
+                  <label htmlFor="category" className="form-label">
+                    Category
+                  </label>
+                  <select
+                    className="form-select"
+                    value={formData.category}
+                    onChange={(e) =>
+                      setFormData({ ...formData, category: e.target.value })
+                    }
+                    style={{
+                      backgroundColor: "var(--bg-color)",
+                      color: "var(--text-color)",
+                      border: "1px solid var(--border-color)",
+                    }}
+                    required
+                  >
+                    <option value="">Select Category</option>
+                    <option value="Can goods">Can goods</option>
+                    <option value="Snacks">Snacks</option>
+                    <option value="Drinks">Drinks</option>
+                    <option value="Instant Noodles">Instant Noodles</option>
+                    <option value="Condiments">Condiments</option>
+                    <option value="Rice">Rice</option>
+                    <option value="Frozen goods">Frozen goods</option>
+                    <option value="Personal care">Personal care</option>
+                    <option value="Laundry">Laundry</option>
+                    <option value="Household Item">Household Item</option>
+                  </select>
+                </div>
+
+                {/* Brands */}
+                <div className="col-md-3 mb-3">
+                  <label htmlFor="brand" className="form-label">
+                    Brand
+                  </label>
+                  <input
+                    id="brand"
+                    name="brand"
+                    className="form-control"
+                    placeholder="Enter brand"
+                    value={formData.brand}
+                    onChange={(e) =>
+                      setFormData({ ...formData, brand: e.target.value })
+                    }
+                    style={{
+                      backgroundColor: "var(--bg-color)",
+                      color: "var(--text-color)",
+                      border: "1px solid var(--border-color)",
+                    }}
+                  />
+                </div>
+
+                {/* Supplier */}
+                <div className="col-md-3 mb-3">
+                  <label htmlFor="supplier_id" className="form-label">
+                    Supplier
+                  </label>
+                  <select
+                    id="supplier_id"
+                    name="supplier_id"
+                    className="form-select"
+                    value={formData.supplier_id}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value === "new") {
+                        setShowNewSupplier(true);
+                      } else {
+                        setFormData({ ...formData, supplier_id: value });
+                      }
+                    }}
+                    style={{
+                      backgroundColor: "var(--bg-color)",
+                      color: "var(--text-color)",
+                      border: "1px solid var(--border-color)",
+                    }}
+                  >
+                    <option value="">Select Supplier</option>
+                    {suppliers.map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.name}
+                      </option>
+                    ))}
+                    <option value="new">➕ Add New Supplier...</option>
+                  </select>
+                </div>
+
+                {showNewSupplier && (
+                  <div
+                    className="col-12 border rounded p-3"
+                    style={{
+                      backgroundColor: "var(--bg-secondary)",
+                      color: "var(--text-color)",
+                      border: "1px solid var(--border-color)",
+                    }}
+                  >
+                    <h6>Add New Supplier</h6>
+                    <div className="row g-2">
+                      <div className="col-md-6">
+                        <label className="form-label">Product</label>
+                        <input
+                          className="form-control"
+                          placeholder="Enter product"
+                          value={newSupplier.product}
+                          onChange={(e) =>
+                            setNewSupplier({
+                              ...newSupplier,
+                              product: e.target.value,
+                            })
+                          }
+                          style={{
+                            backgroundColor: "var(--bg-color)",
+                            color: "var(--text-color)",
+                            border: "1px solid var(--border-color)",
+                          }}
+                        />
+                      </div>
+                      <div className="col-md-6">
+                        <label className="form-label">Name</label>
+                        <input
+                          className="form-control"
+                          placeholder="Enter supplier name"
+                          value={newSupplier.name}
+                          onChange={(e) =>
+                            setNewSupplier({
+                              ...newSupplier,
+                              name: e.target.value,
+                            })
+                          }
+                          style={{
+                            backgroundColor: "var(--bg-color)",
+                            color: "var(--text-color)",
+                            border: "1px solid var(--border-color)",
+                          }}
+                        />
+                      </div>
+                      <div className="col-md-6">
+                        <label className="form-label">Contact Person</label>
+                        <input
+                          className="form-control"
+                          placeholder="Enter contact name"
+                          value={newSupplier.contact}
+                          onChange={(e) =>
+                            setNewSupplier({
+                              ...newSupplier,
+                              contact: e.target.value,
+                            })
+                          }
+                          style={{
+                            backgroundColor: "var(--bg-color)",
+                            color: "var(--text-color)",
+                            border: "1px solid var(--border-color)",
+                          }}
+                        />
+                      </div>
+                      <div className="col-md-6">
+                        <label className="form-label">Phone</label>
+                        <input
+                          className="form-control"
+                          placeholder="Enter phone number"
+                          value={newSupplier.phone}
+                          onChange={(e) =>
+                            setNewSupplier({
+                              ...newSupplier,
+                              phone: e.target.value,
+                            })
+                          }
+                          style={{
+                            backgroundColor: "var(--bg-color)",
+                            color: "var(--text-color)",
+                            border: "1px solid var(--border-color)",
+                          }}
+                        />
+                      </div>
+                      <div className="col-md-12">
+                        <label className="form-label">Address</label>
+                        <textarea
+                          className="form-control"
+                          placeholder="Enter address"
+                          value={newSupplier.address}
+                          onChange={(e) =>
+                            setNewSupplier({
+                              ...newSupplier,
+                              address: e.target.value,
+                            })
+                          }
+                          style={{
+                            backgroundColor: "var(--bg-color)",
+                            color: "var(--text-color)",
+                            border: "1px solid var(--border-color)",
+                          }}
+                        />
+                      </div>
+                      <div className="col-12 text-end mt-2">
+                        <button
+                          className="btn btn-sm btn-secondary me-2"
+                          onClick={() => setShowNewSupplier(false)}
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-success"
+                          disabled={addingSupplier}
+                          onClick={async () => {
+                            try {
+                              // Prevent duplicate by name (client-side)
+                              const nameNorm = newSupplier.name
+                                .trim()
+                                .toLowerCase();
+                              if (
+                                suppliers.some(
+                                  (s) =>
+                                    s.name?.trim().toLowerCase() === nameNorm
+                                )
+                              ) {
+                                alert(
+                                  "⚠️ Supplier with this name already exists."
+                                );
+                                return;
+                              }
+
+                              if (addingSupplier) return;
+                              setAddingSupplier(true);
+
+                              const res = await axios.post(
+                                "http://localhost:5000/api/stocked/add/suppliers",
+                                newSupplier
+                              );
+
+                              const newId =
+                                res.data.id ?? res.data?.supplier_id ?? null;
+                              if (!newId) {
+                                throw new Error(
+                                  "Unexpected response: missing new supplier ID"
+                                );
+                              }
+
+                              // Construct the new supplier object; prefer server-returned fields if available
+                              const createdSupplier = {
+                                id: newId,
+                                name: newSupplier.name,
+                                product: newSupplier.product,
+                                contact: newSupplier.contact,
+                                phone: newSupplier.phone,
+                                address: newSupplier.address,
+                                // include any other expected fields if needed
+                              };
+
+                              setSuppliers((prev) => {
+                                // guard again to avoid accidental dupes
+                                if (
+                                  prev.some(
+                                    (s) => String(s.id) === String(newId)
+                                  )
+                                )
+                                  return prev;
+                                return [...prev, createdSupplier];
+                              });
+
+                              setFormData((f) => ({
+                                ...f,
+                                supplier_id: newId,
+                              }));
+                              setShowNewSupplier(false);
+                              showSuccessModal(
+                                "✅ Supplier added successfully!"
+                              );
+                            } catch (err) {
+                              console.error(err);
+                              alert("❌ Failed to add supplier.");
+                            } finally {
+                              setAddingSupplier(false);
+                            }
+                          }}
+                        >
+                          {addingSupplier ? "Saving..." : "Save Supplier"}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Received By */}
+                <div className="col-md-3 mb-3">
+                  <label htmlFor="received_by" className="form-label">
+                    Received By
+                  </label>
+                  <select
+                    id="received_by"
+                    name="received_by"
+                    className="form-select"
+                    value={String(formData.received_by)}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        received_by: e.target.value,
+                      })
+                    }
+                    style={{
+                      backgroundColor: "var(--bg-color)",
+                      color: "var(--text-color)",
+                      border: "1px solid var(--border-color)",
+                    }}
+                  >
+                    <option value="">Select Checker</option>
+                    {checkerEmployees.map((e) => (
+                      <option key={e.id} value={String(e.id)}>
+                        {e.name}
+                        {e.isActive === 0 ? " (inactive)" : ""}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Received Date */}
+                <div className="col-md-3 mb-3">
+                  <label htmlFor="received_date" className="form-label">
+                    Received Date
+                  </label>
+                  <input
+                    id="received_date"
+                    name="received_date"
+                    type="date"
+                    className="form-control"
+                    value={formData.received_date}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        received_date: e.target.value,
+                      })
+                    }
+                    style={{
+                      backgroundColor: "var(--bg-color)",
+                      color: "var(--text-color)",
+                      border: "1px solid var(--border-color)",
+                    }}
+                  />
+                </div>
+
+                {/* Condition */}
+                <div className="col-md-3 mb-3">
+                  <label htmlFor="product_condition" className="form-label">
+                    Condition
+                  </label>
+                  <select
+                    id="product_condition"
+                    name="product_condition"
+                    className="form-select"
+                    value={formData.product_condition}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        product_condition: e.target.value,
+                      })
+                    }
+                    style={{
+                      backgroundColor: "var(--bg-color)",
+                      color: "var(--text-color)",
+                      border: "1px solid var(--border-color)",
+                    }}
+                  >
+                    <option value="New">New</option>
+                    <option value="Stored">Stored</option>
+                  </select>
+                </div>
+
+                {/* Product Image */}
+                <div className="col-md-6 mb-3">
+                  <label htmlFor="image" className="form-label">
+                    Product Image
+                  </label>
+                  <input
+                    id="image"
+                    type="file"
+                    accept="image/*"
+                    className="form-control"
+                    onChange={(e) => {
+                      const file = e.target.files[0];
+                      if (file) {
+                        setFormData({ ...formData, image: file });
+                      }
+                    }}
+                    style={{
+                      backgroundColor: "var(--bg-color)",
+                      color: "var(--text-color)",
+                      border: "1px solid var(--border-color)",
+                    }}
+                  />
+                </div>
+                {formData.image && typeof formData.image === "object" && (
+                  <div className="mt-2">
+                    <img
+                      src={URL.createObjectURL(formData.image)}
+                      alt="Preview"
+                      style={{
+                        width: "100px",
+                        height: "100px",
+                        objectFit: "cover",
+                        borderRadius: "4px",
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+            <div
+              className="modal-footer"
+              style={{ borderTop: "none", paddingTop: "0.75rem" }}
+            >
+              <button
+                className="btn btn-secondary"
+                data-bs-dismiss="modal"
+                type="button"
+              >
+                Cancel
+              </button>
+              <button className="btn btn-success" onClick={handleSave}>
+                {isEditing ? "Update" : "Add"}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Success Modal */}
+      <div
+        className="modal fade"
+        id="successModal"
+        tabIndex="-1"
+        aria-hidden="true"
+      >
+        <div className="modal-dialog modal-dialog-centered">
+          <div
+            className="modal-content text-center"
+            style={{
+              backgroundColor: "limegreen",
+              color: "white",
+              padding: "1rem",
+            }}
+          >
+            <div className="modal-body">
+              <p className="fs-5 m-0" id="successMessage">
+                Success!
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Delete Confirmation Modal */}
+      <div
+        className="modal fade"
+        id="deleteConfirmModal"
+        tabIndex="-1"
+        aria-hidden="true"
+      >
+        <div className="modal-dialog modal-dialog-centered">
+          <div
+            className="modal-content"
+            style={{
+              backgroundColor: "var(--bg-color)",
+              color: "var(--text-color)",
+              border: "1px solid var(--border-color)",
+              padding: "0",
+            }}
+          >
+            <div className="modal-header border-0">
+              <h5 className="modal-title">Confirm Delete</h5>
+              <button
+                className="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+                style={{ filter: "invert(1)" }}
+              ></button>
+            </div>
+            <div className="modal-body text-center">
+              <p className="fs-5">
+                Are you sure you want to delete this stock item?
+              </p>
+            </div>
+            <div className="modal-footer justify-content-center border-0">
+              <button className="btn btn-secondary" data-bs-dismiss="modal">
+                Cancel
+              </button>
+              <button className="btn btn-danger" onClick={confirmDelete}>
+                Yes, Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Stock;

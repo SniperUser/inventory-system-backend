@@ -1,0 +1,443 @@
+/* Ensure consistent card height with spacing between */
+.product-item {
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  padding: 10px;
+  border: 1px solid #eee;
+  border-radius: 6px;
+  height: 100%;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* light initial shadow */
+  transition: box-shadow 0.3s ease-in-out, transform 0.3s ease-in-out;
+  margin: 10px; /* space between each card */
+}
+
+/* Hover effect with shadow bottom-right */
+.product-item:hover {
+  box-shadow: 6px 8px 16px rgba(0, 0, 0, 0.25); /* bottom-right shadow */
+  transform: translateY(-2px); /* subtle lift */
+}
+
+/* Image container */
+.pi-img-wrapper {
+  position: relative;
+  width: 100%;
+  padding-top: 100%; /* Square shape */
+  overflow: hidden;
+  border-radius: 6px;
+}
+
+/* Image styling */
+.pi-img-wrapper img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Full overlay with buttons at bottom center */
+.overlay-btns {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center; /* horizontal center */
+  align-items: flex-end; /* bottom alignment */
+  gap: 10px;
+  background: rgba(0, 0, 0, 0.4); /* dark overlay background */
+  opacity: 1; /* always visible */
+  padding-bottom: 10px; /* space from bottom */
+  transition: background 0.3s ease-in-out;
+}
+
+/* Button styling */
+.overlay-btns .btn {
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: white;
+  background-color: rgba(0, 0, 0, 0.6);
+  border: none;
+}
+
+.overlay-btns .btn:hover {
+  background-color: rgba(0, 0, 0, 0.8);
+}
+
+/* Title & price styling */
+.product-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-top: 8px;
+  margin-bottom: 5px;
+}
+
+.pi-price {
+  color: #28a745;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.product-slide {
+  padding: 0 5px; /* space between each product */
+  box-sizing: border-box;
+}
+
+.sale-product h2 {
+  margin-bottom: 20px;
+}
+
+.cg-overlay {
+  background: rgba(0, 0, 0, 0.5);
+  opacity: 1 !important; /* Always visible */
+}
+
+/* Account modal setting start */
+/* Main panel */
+.custom-user-panel {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  width: 260px; /* smaller width */
+  z-index: 2000;
+  background: #fff;
+  padding: 1rem;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  text-align: center; /* center content */
+}
+
+/* Avatar image */
+.custom-user-panel img {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 10px;
+}
+
+/* Username */
+.custom-user-name {
+  font-size: 16px;
+  font-weight: 500;
+  margin-bottom: 15px;
+  color: #333;
+}
+
+/* Action buttons */
+.custom-action-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+}
+
+.custom-action-btn {
+  width: 90%;
+  padding: 8px 0;
+  background-color: white;
+  color: black;
+  border: 2px solid black;
+  border-radius: 100px !important;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  margin-bottom: 5px;
+}
+
+.custom-action-btn:hover {
+  background-color: #13d3ec;
+  width: 95%;
+  font-style: oblique;
+}
+
+/* Logout button */
+.custom-logout-btn {
+  width: 90%;
+  padding: 8px 0;
+  background-color: #dc3545;
+  color: #fff;
+  border: 2px solid black;
+  border-radius: 100px !important;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.custom-logout-btn:hover {
+  background-color: #b02a37;
+}
+
+/* Close button */
+.custom-close-btn {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  background: transparent;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  color: #555;
+}
+
+/*for password verication clicking the icon*/
+.buneyw-password-modal {
+  position: fixed;
+  top: 5%;
+  right: 0;
+  width: 100%;
+  height: 100%;
+  background: transparent; /* transparent so it doesn't cover too much */
+  z-index: 10000; /* above normal elements */
+  display: flex;
+  justify-content: flex-end; /* push to right */
+  align-items: flex-start; /* push to top */
+  padding: 20px; /* spacing from edges */
+}
+
+.buneyw-dialog {
+  position: relative;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  width: 280px;
+  animation: slideInFromTop 0.3s ease-out;
+}
+
+.buneyw-content {
+  padding: 0;
+}
+
+.buneyw-header {
+  background: #007bff;
+  color: white;
+  padding: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.buneyw-title {
+  margin: 0;
+  font-size: 16px;
+}
+
+.buneyw-close-btn {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.buneyw-body {
+  padding: 10px;
+}
+
+.buneyw-input {
+  width: 100%;
+  padding: 6px;
+}
+
+.buneyw-error {
+  color: red;
+  margin-top: 5px;
+}
+
+.buneyw-footer {
+  padding: 10px;
+  text-align: right;
+}
+
+.buneyw-btn {
+  padding: 4px 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.buneyw-btn-cancel {
+  background: #ccc;
+}
+
+.buneyw-btn-submit {
+  background: #28a745;
+  color: white;
+}
+
+/* Animation for nice entry */
+@keyframes slideInFromTop {
+  from {
+    opacity: 0;
+    transform: translateY(-20%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/*Account modal setting end*/
+
+/*For headder shop name and cart*/
+/* ====== CART DROPDOWN ====== */
+
+.supershop-cart-block {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 10px 15px;
+  z-index: 9999;
+  min-width: 180px;
+  transition: all 0.3s ease;
+}
+
+.supershop-cart-block:hover {
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+}
+
+.supershop-cart-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.supershop-cart-info a {
+  font-size: 14px;
+  color: #333;
+  text-decoration: none;
+}
+
+.supershop-cart-icon {
+  font-size: 18px;
+  margin-left: 8px;
+  color: #ff5722;
+}
+
+.supershop-cart-content-wrapper {
+  background: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-top: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+/*Account modal setting end*/
+
+/* cart design area start*/
+.cart-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.cart-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px;
+  border-bottom: 1px solid #eee;
+}
+
+.cart-item-img {
+  width: 40px;
+  height: 34px;
+  object-fit: cover;
+  margin-right: 10px;
+  border-radius: 4px;
+}
+
+.cart-item-details {
+  flex: 1;
+  margin-left: 8px;
+  display: flex;
+  flex-direction: column;
+}
+
+.cart-item-name a {
+  font-weight: 500;
+  color: #333;
+  text-decoration: none;
+}
+
+.cart-item-meta {
+  display: flex;
+  gap: 12px;
+  font-size: 14px;
+  color: #666;
+}
+
+.cart-item-qty {
+  font-weight: 500;
+}
+
+.cart-item-price {
+  font-weight: bold;
+  color: #000;
+}
+
+.del-goods {
+  background: none;
+  border: none;
+  color: red;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+/*cart design area end*/
+
+/*account icon and number design startst*/
+.pre-header {
+  position: fixed; /* stays on screen */
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 2000; /* make sure it's above everything */
+  background: #fff; /* keep design intact */
+}
+
+body {
+  padding-top: 50px; /* adjust this to your header height */
+}
+
+/*account icon and number design end*/
+
+/*Footer design start*/
+.footer {
+  background: #222; /* dark footer */
+  color: #ddd;
+  font-size: 14px;
+}
+
+.footer .payment-icon {
+  height: 30px;
+  width: auto;
+  filter: grayscale(30%);
+  transition: all 0.3s ease;
+}
+
+.footer .payment-icon:hover {
+  filter: none;
+  transform: scale(1.1);
+}
+
+.footer .social-icons a {
+  color: #ddd;
+  font-size: 18px;
+  transition: color 0.3s, transform 0.3s;
+}
+
+.footer .social-icons a:hover {
+  color: #f44336; /* red accent */
+  transform: scale(1.2);
+}
+
+/*Footer design end*/

@@ -1,0 +1,11 @@
+.bg-theme {
+  background-color: var(--card-bg) !important;
+}
+
+.text-theme {
+  color: var(--text-color) !important;
+}
+
+.border-theme {
+  border: 1px solid var(--border-color) !important;
+}

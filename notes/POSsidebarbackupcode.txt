@@ -1,0 +1,75 @@
+// Sidebar.js
+import React from "react";
+import "bootstrap/dist/css/bootstrap.min.css";
+
+const Sidebar = () => {
+  return (
+    <div
+      className="bg-white border-end"
+      style={{ width: "250px", minHeight: "100%" }}
+    >
+      <div className="p-3">
+        <h5 className="text-uppercase text-muted">Category</h5>
+        <ul className="list-unstyled">
+          <li>
+            <a href="#" className="text-decoration-none d-block py-2">
+              All
+            </a>
+          </li>
+          <li>
+            <a href="#" className="text-decoration-none d-block py-2">
+              Can Goods
+            </a>
+          </li>
+          <li>
+            <a href="#" className="text-decoration-none d-block py-2">
+              Snacks
+            </a>
+          </li>
+          <li>
+            <a href="#" className="text-decoration-none d-block py-2">
+              Drinks
+            </a>
+          </li>
+          <li>
+            <a href="#" className="text-decoration-none d-block py-2">
+              Instant Noodles
+            </a>
+          </li>
+          <li>
+            <a href="#" className="text-decoration-none d-block py-2">
+              Condiments
+            </a>
+          </li>
+          <li>
+            <a href="#" className="text-decoration-none d-block py-2">
+              Rice
+            </a>
+          </li>
+          <li>
+            <a href="#" className="text-decoration-none d-block py-2">
+              Frozen Goods
+            </a>
+          </li>
+          <li>
+            <a href="#" className="text-decoration-none d-block py-2">
+              Personal Care
+            </a>
+          </li>
+          <li>
+            <a href="#" className="text-decoration-none d-block py-2">
+              Laundry
+            </a>
+          </li>
+          <li>
+            <a href="#" className="text-decoration-none d-block py-2">
+              Others
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  );
+};
+
+export default Sidebar;

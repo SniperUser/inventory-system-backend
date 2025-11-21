@@ -1,0 +1,32 @@
+ const handleExportPDF = () => {
+    const doc = new jsPDF();
+    autoTable(doc, {
+      head: [
+        [
+          "#",
+          "Product Name",
+          "Description",
+          "Price",
+          "Qty",
+          "Category",
+          "Supplier",
+          "Received By",
+          "Received Date",
+          "Condition",
+        ],
+      ],
+      body: filteredStock.map((item, index) => [
+        index + 1,
+        item.product_name,
+        item.description,
+        `PHP ${Number(item.price).toFixed(2)}`,
+        item.quantity,
+        item.category,
+        item.supplier_name,
+        item.received_by_name,
+        new Date(item.received_date).toLocaleString(),
+        item.product_condition,
+      ]),
+    });
+    doc.save("stock_inventory.pdf");
+  };

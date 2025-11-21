@@ -1,0 +1,48 @@
+/* Fixed sidebar width */
+.sidebar-fixed {
+  width: 260px; /* Adjust this to make it wider/narrower */
+  background-color: #fff; /* Or your sidebar bg */
+  border-right: 1px solid #ddd;
+  flex-shrink: 0; /* ✅ Prevents sidebar from shrinking */
+}
+
+/* Make buttons fill width */
+.sidebar-fixed .btn {
+  width: 100%;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  text-align: left;
+  transition: all 0.3s ease;
+}
+
+/* Hover effect for buttons */
+.sidebar-fixed .btn:hover {
+  background-color: #f0f0f0;
+  border-color: #999;
+  transform: translateX(3px);
+}
+
+.sidebar-fixed {
+  width: 250px; /* fixed width */
+  flex-shrink: 0;
+  background-color: #f8f9fa; /* light gray background */
+  border-right: 1px solid #dee2e6;
+  overflow-y: auto; /* make it scrollable */
+  height: calc(100vh - 56px - 56px);
+  /* 100vh minus header & footer height (adjust if needed) */
+}
+
+/* Optional: Smooth scroll style */
+.sidebar-fixed::-webkit-scrollbar {
+  width: 8px;
+}
+
+.sidebar-fixed::-webkit-scrollbar-thumb {
+  background-color: #ccc;
+  border-radius: 4px;
+}
+
+.sidebar-fixed::-webkit-scrollbar-track {
+  background: transparent;
+}

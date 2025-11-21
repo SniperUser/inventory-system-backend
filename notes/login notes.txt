@@ -1,0 +1,71 @@
+1️⃣ loginUser
+Purpose: Authenticate a user.
+
+Flow:
+
+Takes username and password from the request.
+
+Checks the register + employee tables (via JOIN if we modify it).
+
+Verifies password with bcrypt.compare.
+
+Sets isActive = true in the employee table.
+
+Generates a JWT token with user info.
+
+When it runs: Only when someone logs in.
+
+2️⃣ getLoggedInUsers
+Purpose: List all employees who are currently marked as active.
+
+Flow:
+
+SELECT from employee joined with register.
+
+Filters WHERE e.isActive = 1 AND e.is_archived = 0.
+
+Returns an array of active users for your frontend.
+
+When it runs:
+
+Could be used for an "Active Users" dashboard.
+
+Does not log in or out anyone — only reads the DB.
+
+3️⃣ getCurrentActiveUser
+Purpose: Get details of the currently authenticated user from the JWT token.
+
+Flow:
+
+Reads employee_id from req.user (which comes from verifyToken middleware).
+
+Queries employee + register for that specific ID.
+
+Ensures isActive = 1.
+
+When it runs:
+
+If your frontend needs to show "Welcome, John Doe" based on the token.
+
+Used in places where the app must verify who is logged in.
+
+🔹 Key Difference
+loginUser → Logs someone in (sets isActive true + issues token).
+
+getLoggedInUsers → Lists all active employees.
+
+getCurrentActiveUser → Gets details of one active user (from token).
+
+If we change loginUser to use the JOIN query, it only affects:
+
+How the login process fetches user data.
+
+It will still:
+
+Validate password
+
+Update isActive
+
+Generate token
+
+getLoggedInUsers and getCurrentActiveUser will still work as before — they do not depend on loginUser’s SQL, they have their own queries.

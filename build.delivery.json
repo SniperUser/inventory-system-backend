@@ -1,0 +1,28 @@
+{
+  "appId": "com.store.delivery",
+  "productName": "Delivery System",
+  "directories": {
+    "output": "dist/delivery"
+  },
+  "files": [
+    "build/**/*",
+    "mike-delivery.js",
+    "loading.html",
+    "package.json"
+  ],
+  "extraResources": [
+    {
+      "from": "src/admin/backend",
+      "to": "backend",
+      "filter": ["**/*"]
+    }
+  ],
+  "win": {
+    "target": "nsis",
+    "signAndEditExecutable": false,
+    "icon": "build/delivery.ico"
+  },
+  "extraMetadata": {
+    "main": "mike-delivery.js"
+  }
+}

@@ -1,0 +1,37 @@
+.custom-main {
+  background-color: var(--bg-color);
+  color: #f1f1f1; /* Light text for contrast */
+  border-radius: 0.5rem;
+}
+
+.table {
+  background-color: #2a2a40;
+  color: white;
+}
+
+.table thead {
+  background-color: #383857;
+  color: #ffffff;
+}
+
+.btn-outline-warning {
+  border-color: #ffc107;
+  color: #ffc107;
+}
+
+.btn-outline-danger {
+  border-color: #dc3545;
+  color: #dc3545;
+}
+
+.btn-outline-warning:hover,
+.btn-outline-danger:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+input.form-control,
+select.form-select {
+  background-color: #343a40;
+  color: white;
+  border: 1px solid #495057;
+}

@@ -1,0 +1,18 @@
+// ✅ role-based redirect
+const role = user.role;
+const position = user.position; // 👈 make sure backend sends this field
+
+if (role === "Admin") {
+  navigate("/home", { replace: true, state: { currentUser: user } });
+} else if (role === "User") {
+  if (position === "Cashier") {
+    navigate("/cashier", { replace: true, state: { currentUser: user } }); // 👈 Cashier page
+  } else {
+    navigate("/pos", { replace: true, state: { currentUser: user } });
+  }
+} else {
+  navigate("/logged-in-users", {
+    replace: true,
+    state: { currentUser: user },
+  });
+}

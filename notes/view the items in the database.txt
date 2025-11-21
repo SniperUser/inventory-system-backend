@@ -1,0 +1,10 @@
+SELECT 
+    id,
+    customer_name,
+    JSON_UNQUOTE(JSON_EXTRACT(items, '$[0].product_name')) AS product1,
+    JSON_UNQUOTE(JSON_EXTRACT(items, '$[0].qty')) AS qty1,
+    JSON_UNQUOTE(JSON_EXTRACT(items, '$[1].product_name')) AS product2,
+    JSON_UNQUOTE(JSON_EXTRACT(items, '$[1].qty')) AS qty2
+FROM sales_order
+ORDER BY id DESC
+LIMIT 25;

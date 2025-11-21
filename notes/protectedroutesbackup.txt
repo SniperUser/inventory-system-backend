@@ -1,0 +1,34 @@
+import React, { useEffect, useState } from "react";
+import { Navigate, useLocation } from "react-router-dom";
+
+const ProtectedRoute = ({ children, allowedRoles }) => {
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAllowed, setIsAllowed] = useState(false);
+  const location = useLocation();
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const expiry = localStorage.getItem("tokenExpiry");
+    const user = JSON.parse(localStorage.getItem("user"));
+    const role = user?.role;
+
+    const isTokenValid = token && (!expiry || Date.now() < parseInt(expiry));
+    const isRoleAllowed = !allowedRoles || allowedRoles.includes(role);
+
+    if (isTokenValid && isRoleAllowed) {
+      setIsAllowed(true);
+    } else {
+      localStorage.clear();
+      sessionStorage.removeItem("appInitialized");
+      setIsAllowed(false);
+    }
+
+    setIsLoading(false);
+  }, [allowedRoles, location.pathname]); // location.pathname ensures recheck on back
+
+  if (isLoading) return null;
+
+  return isAllowed ? children : <Navigate to="/loginPage" replace state={{ from: location }} />;
+};
+
+export default ProtectedRoute;

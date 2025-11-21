@@ -1,0 +1,95 @@
+🚀 Usage:
+
+React Dev Server:
+
+npm start
+
+
+Backend API:
+
+npm run start-server
+
+
+Electron Dev (with React hot reload):
+
+npm run electron-dev
+
+
+Electron Production (after build):
+
+npm run build
+npm run electron
+
+
+Build distributable app:
+
+npm run dist
+
+
+
+
+
+
+
+
+========================================================================
+🔹 2. Package with Electron
+
+Now build the Electron desktop app:
+
+For the main (POS/Admin/Cashier) app:
+
+npm run dist:main
+
+
+→ Output: dist/main/Inventory System Setup.exe (on Windows)
+→ You can double-click this installer like a normal program.
+
+For the delivery app:
+
+npm run dist:delivery
+
+
+→ Output: dist/delivery/DeliverySystem Setup.exe
+
+🔹 3. What happens
+
+An installer (.exe on Windows, .dmg on Mac, .AppImage on Linux) will be generated.
+
+After installing, you’ll see the app in:
+
+Windows: Start Menu + Desktop shortcut (if you enable it in NSIS config)
+
+Mac: Applications folder
+
+Linux: App launcher
+
+🔹 4. Running in development (without building installer)
+
+If you just want to test:
+
+npm run electron-main-dev   # run Admin/POS/Cashier app
+npm run electron-delivery-dev   # run Delivery app
+
+
+This launches a development version without installing.
+
+🔹 5. Optional: Add Desktop Shortcut Automatically
+
+By default electron-builder with NSIS target creates a desktop and start menu shortcut on install.
+If you want to force it, add inside package.json → build.win:
+
+"win": {
+  "target": "nsis",
+  "icon": "public/icon.ico"
+},
+"nsis": {
+  "oneClick": false,
+  "allowToChangeInstallationDirectory": true,
+  "createDesktopShortcut": true,
+  "createStartMenuShortcut": true
+}
+
+
+Replace public/icon.ico with your store logo.
+============

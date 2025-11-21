@@ -1,0 +1,22 @@
+/* Keep sidebar fixed width and height */
+.sidebar-fixed {
+  width: 500px !important; /* always expanded */
+  min-height: 100vh;
+  border-right: 1px solid #ddd;
+  background-color: #fff;
+}
+
+/* Style for category buttons */
+.sidebar-fixed .category-btn {
+  width: 100%;
+  text-align: left;
+  padding: 10px 15px;
+  border: none;
+  background: none;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.sidebar-fixed .category-btn:hover {
+  background-color: #f8f9fa;
+}

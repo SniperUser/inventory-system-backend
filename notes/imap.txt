@@ -1,0 +1,3 @@
+kuha ug cert para sa imap to received email
+
+https://letsencrypt.org/certs/isrgrootx1.pem

@@ -1,0 +1,99 @@
+In this code in the customer and Order Details
+1. In payment selection when it says pay now there should be a button appear named pay, when it clicks it will open a field or a modal to "Enter a Customer Money" 
+and calculate all the data including the order item, shipping pay,and also put the change then add calculate button, when click open a modal that display the summary
+of the item, money of the customer entered, the change and all necessary information the add button print when click it will print the oder items, including the customer
+details all information and add the data in the database sales_done
+
+2. When adding in the DB successful remove all the data from the sales_order table in the database and add in the sales_done table in the database.
+
+3.If COD in the payment is selected. Add a button called "Accept Order" or "Delete" if accept add the data in the delivery table in the database and remove
+the data from the sales_order table in the database, and if the delete button is click simply delete the data from sales_order add confirmation modal if confirm or
+cancel then proceed.
+
+This is the sales_done structure in the Db
+
+id
+customer_name
+email
+phone
+delivery_type
+receiver
+delivery_place
+address
+contact
+payment
+total
+shipping_fee
+delivery_status
+created_at
+
+Edit Edit
+Copy Copy
+Delete Delete
+3
+Walk-in
+pickup
+N/A
+NULL
+150.00
+140.00
+0.00
+done
+2025-08-26 14:25:16
+
+Edit Edit
+Copy Copy
+Delete Delete
+5
+Michelle Rosario
+09084696335
+delivery
+Mike Cabug
+Lamingan
+Basketball court
+NULL
+150.00
+120.00
+70.00
+pending
+2025-08-27 09:24:57
+
+
+This is the structure of sales_order in the Db
+
+id
+customer_name
+email
+phone
+delivery_type
+receiver
+delivery_place
+address
+contact
+payment
+items
+total
+created_at
+shipping_fee
+delivery_status
+
+Edit Edit
+Copy Copy
+Delete Delete
+20
+Mike Cabug
+09090909099
+delivery
+Mike or Michelle
+Lamingan
+kalabugao prok 5, , 
+0909009090909
+cod
+[{"id":38,"product_name":"555 Sardines","descripti...
+160.00
+2025-08-25 09:56:11
+70.00
+pending
+
+This is the delivery table structure in my database
+id	customer_name	phone	receiver	delivery_place	address	delivery_type	payment	total	shipping_fee	items	delivery_status	created_at	
