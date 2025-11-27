@@ -10,6 +10,8 @@ const LoginPage = () => {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const API = "https://inventory-system-backend-4-ojd4.onrender.com";
+
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -47,12 +49,13 @@ const LoginPage = () => {
 
     try {
       const res = await axios.post(
-        "http://localhost:5000/api/login/login/user",
-        {
-          username,
-          password,
-        }
-      );
+  "https://inventory-system-backend-4-ojd4.onrender.com/api/login/login/user",
+  {
+    username,
+    password,
+  }
+);
+
 
       if (res.data?.message === "Login successful") {
         const { user, token } = res.data;
