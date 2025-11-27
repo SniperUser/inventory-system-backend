@@ -42,6 +42,8 @@ const EmployeeTable = () => {
   const { theme, setTheme } = useContext(ThemeContext);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const fallbackImage = "/default-user.png";
+  const API_BASE = "https://inventory-system-backend-5-hvug.onrender.com/api/employee";
+
 
   // Consolidated login status and initial fetch
   useEffect(() => {
@@ -85,9 +87,9 @@ const EmployeeTable = () => {
 
   const getAllEmployees = async () => {
     try {
-      const res = await axios.get(
-        "http://localhost:5000/api/employee/employees/all"
-      );
+      // Fetch all employees
+const res = await axios.get(`${API_BASE}/employees/all`);
+setEmployees(res.data); 
       setEmployees(res.data);
     } catch (err) {
       console.error("Failed to fetch employees:", err);
@@ -101,9 +103,8 @@ const EmployeeTable = () => {
       if (employeeImages[id]) return; // already fetched (success or fallback)
 
       try {
-        const response = await fetch(
-          `http://localhost:5000/api/employee/employees/${id}/image`
-        );
+       const response = await fetch(`${API_BASE}/employees/${id}/image`);
+
         if (!response.ok) throw new Error("Image not found");
         const blob = await response.blob();
         const blobUrl = URL.createObjectURL(blob);
@@ -201,10 +202,8 @@ const EmployeeTable = () => {
 
     try {
       if (isEditing) {
-        await axios.put(
-          `http://localhost:5000/api/employee/update/employee/${formData.id}`,
-          formData
-        );
+      // Update employee
+await axios.put(`${API_BASE}/update/employee/${formData.id}`, formData);
         showToast("Employee updated successfully.");
 
         setEmployees((prevEmployees) =>
@@ -232,10 +231,8 @@ const EmployeeTable = () => {
           name: formData.name.trim(),
         };
 
-        const res = await axios.post(
-          "http://localhost:5000/api/employee/add/employee",
-          newEmployeeData
-        );
+        const res = await // Add employee
+await axios.post(`${API_BASE}/add/employee`, newEmployeeData);
 
         const { username, password, emailSent } = res.data;
 
@@ -272,9 +269,8 @@ const EmployeeTable = () => {
 
   const handleDelete = async () => {
     try {
-      await axios.put(
-        `http://localhost:5000/api/employee/delete/employee/${deleteId}`
-      );
+      // Delete/archive employee
+await axios.put(`${API_BASE}/delete/employee/${deleteId}`);
       showToast("Employee moved to archive");
       getAllEmployees();
       closeDeleteModal();
