@@ -10,7 +10,7 @@ const LoginPage = () => {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const API = "https://inventory-system-backend-4-ojd4.onrender.com";
+  const API = "https://inventory-system-backend-5-hvug.onrender.com";
 
 
   useEffect(() => {
