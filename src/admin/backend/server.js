@@ -11,12 +11,40 @@ import listEndpoints from "express-list-endpoints";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Import routes
+// Load environment variables
+dotenv.config();
+
+// Inject SSL root CAs
+sslRootCAs.inject();
+
+// Create express app
+const app = express();
+const PORT = process.env.PORT || 5000;
+
+// ------------------------
+// ✅ CORS CONFIGURATION
+// ------------------------
+app.use(
+  cors({
+    origin: "https://sparkly-croissant-12ebe1.netlify.app", // your frontend URL
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    credentials: true, // if sending cookies or auth headers
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
+
+// ------------------------
+// Middleware
+// ------------------------
+app.use(express.json());
+
+// ------------------------
+// API Routes
+// ------------------------
 import dashboard from "../components/Dashboard/Routes.js";
 import stockRoutes from "./routes/stockRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import emailRoutes from "./routes/emailRoutes/emailRoutes.js";
-
 import employeeRoutes from "./routes/employeeRoutes/employeeRoutes.js";
 import stockRouter from "./routes/stockRoutes/stockRoutes.js";
 import supplierRoutes from "./routes/supplierRoutes/supplierRoutes.js";
@@ -25,52 +53,26 @@ import orderDelivery from "./routes/deliveryRoutes/deliveryRoutes.js";
 import returnRoutes from "./routes/returnRoute/returnRoute.js";
 import archivedRoutes from "./routes/archived/archive.js";
 
+// (Other POS routes omitted for brevity)
 import Products from "../../FrontendPOS/Routes/GetProducts/routes.js";
 
-// Can Goods
+// Example POS Routes
 import CanGoods from "../../FrontendPOS/Routes/GetCanGoodsRoutes/GetCanGoodsRoutes.js";
-// Instant Noodles
 import InstantNoodles from "../../FrontendPOS/Routes/GetInstantNoodleRoutes/GetInstantNoodleRoutes.js";
-// Snacks
 import Snacks from "../../FrontendPOS/Routes/GetSnacksRoutes/GetSnacksRoutes.js";
-// Drinks
 import Drinks from "../../FrontendPOS/Routes/GetDrinksRoutes/GetDrinksRoutes.js";
-// Rice
 import Rice from "../../FrontendPOS/Routes/GetRiceRoutes/GetRiceRoute.js";
-// Condiments
 import Condiments from "../../FrontendPOS/Routes/GetCondimentsRoutes/GetCondimentsRoutes.js";
-// FrozenGoods
 import FrozenGoods from "../../FrontendPOS/Routes/GetFrozenGoodsRoutes/GetFrozenGoodsRoutes.js";
-// Personal care
 import PersonalCare from "../../FrontendPOS/Routes/GetPersonalCareRoutes/GetPersonalCareRoutes.js";
-// Laundry
 import Laundry from "../../FrontendPOS/Routes/GetLaundryRoutes/GetLaundryRoutes.js";
-// Household
 import HouseHold from "../../FrontendPOS/Routes/GetHouseHoldRoutes/GetHouseHoldRoutes.js";
-// AccountRoutes
 import user from "../../FrontendPOS/Routes/AccountRoutes/AccountRoutes.js";
-// Checkout routes
 import checkout from "../../FrontendPOS/Routes/CheckoutRoutes/CheckoutRoutes.js";
-// Cashiering area
 import cashiering from "../../FrontendPOS/Cashiering/cashieringroutes.js";
-// Delivery routes
 import delivery from "../../FrontendPOS/Delivery/deliveryroutes.js";
 
-// Inject SSL root CAs
-sslRootCAs.inject();
-
-// Load environment variables
-dotenv.config();
-
-// Create express app
-const app = express();
-const PORT = process.env.PORT || 5000;
-
-// Middleware
-app.use(cors());
-app.use(express.json());
-
-// API Routes
+// API Route mounting
 app.use("/api/dashboard", dashboard);
 app.use("/api/login", authRoutes);
 app.use("/api/stock", stockRoutes);
@@ -113,7 +115,7 @@ app.get(/.*/, (req, res) => {
   );
 });
 
-// ✅ Export a function to start the server
+// Start server
 export function startServer() {
   return new Promise((resolve) => {
     const server = app.listen(PORT, () => {
@@ -127,7 +129,7 @@ export function startServer() {
   });
 }
 
-// Optional: run server if directly executed (for development)
+// Optional: run server if directly executed (development)
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   startServer();
 }
